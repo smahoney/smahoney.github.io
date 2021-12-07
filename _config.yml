@@ -23,9 +23,7 @@ title: Sean Mahoney                    # the main title
 tagline: System Administrator          # it will display as the sub-title
 
 description: >-                        # used by seo meta and the atom feed
-  A minimal, portfolio, sidebar,
-  bootstrap Jekyll theme with responsive web design
-  and focuses on text presentation.
+  Sean Mahoney, System Administrator
 
 # fill in the protocol & hostname for your site, e.g., 'https://username.github.io'
 url: 'https://smahoney.github.io'
@@ -43,11 +41,11 @@ social:
   email: sean@mahoney.io               # change to your email address
   links:
     # The first element serves as the copyright owner's link
+    - https://www.linkedin.com/in/seanpatrickmahoney
     - https://twitter.com/mahoney_io   # change to your twitter homepage
     - https://github.com/smahoney      # change to your github homepage
     # Uncomment below to add more social links
     # - https://www.facebook.com/username
-    - https://www.linkedin.com/in/seanpatrickmahoney
 
 google_site_verification: google_meta_tag_verification # change to your verification string
 
@@ -82,7 +80,7 @@ theme_mode: dark
 img_cdn:
 
 # the avatar on sidebar, support local or CORS resources
-avatar:
+avatar: /assets/img/avatar.jpg
 
 # boolean type, the global switch for ToC in posts.
 toc: true
