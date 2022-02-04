@@ -223,8 +223,7 @@ fi
 # ----------------------------------------------
 echo "[x] Allow booting from non-sealed system snapshots ('csrutil authenticated-root disable')..."
 echo
-#csrutil authenticated-root disable
-csrutil authenticated-root status
+csrutil authenticated-root disable
 echo
 
 
@@ -248,14 +247,12 @@ readwrite_ssh_plist_file="$readwrite_system_volume_mount_point/System/Library/La
 readwrite_screensharing_plist_file="$readwrite_system_volume_mount_point/System/Library/LaunchDaemons/com.apple.screensharing.plist"
 
 echo "[x] Updating /System/Library/LaunchDaemons/ssh.plist on system volume..."
-#perl -0777 -i -pe 's/<string>ssh<\/string>\s+<key>Bonjour<\/key>\s+<array>\s+<string>ssh<\/string>\s+<string>sftp-ssh<\/string>\s+<\/array>/<string>22022<\/string>/' $readwrite_ssh_plist_file
-perl -0777 -i -pe 's/<string>ssh<\/string>\s+<key>Bonjour<\/key>\s+<array>\s+<string>ssh<\/string>\s+<string>sftp-ssh<\/string>\s+<\/array>/<string>22022<\/string>/' "$root_home_directory/System_Library_LaunchDaemons_ssh.plist.$date_time_suffix"
+perl -0777 -i -pe 's/<string>ssh<\/string>\s+<key>Bonjour<\/key>\s+<array>\s+<string>ssh<\/string>\s+<string>sftp-ssh<\/string>\s+<\/array>/<string>22022<\/string>/' $readwrite_ssh_plist_file
 
 echo "[x] Updating /System/Library/LaunchDaemons/com.apple.screensharing.plist on system volume..."
-#perl -0777 -i -pe 's/<key>Bonjour<\/key>(\s+)<string>rfb<\/string>(\s+)<key>SockServiceName<\/key>(\s+)<string>vnc-server<\/string>/<key>SockNodeName<\/key>$1<string>localhost<\/string>$2<key>SockServiceName<\/key>$3<string>59059<\/string>/' $readwrite_screensharing_plist_file
-perl -0777 -i -pe 's/<key>Bonjour<\/key>(\s+)<string>rfb<\/string>(\s+)<key>SockServiceName<\/key>(\s+)<string>vnc-server<\/string>/<key>SockNodeName<\/key>$1<string>localhost<\/string>$2<key>SockServiceName<\/key>$3<string>59059<\/string>/' "$root_home_directory/System_Library_LaunchDaemons_com.apple.screensharing.plist.$date_time_suffix"
+perl -0777 -i -pe 's/<key>Bonjour<\/key>(\s+)<string>rfb<\/string>(\s+)<key>SockServiceName<\/key>(\s+)<string>vnc-server<\/string>/<key>SockNodeName<\/key>$1<string>localhost<\/string>$2<key>SockServiceName<\/key>$3<string>59059<\/string>/' $readwrite_screensharing_plist_file
 
-echo "[x] Updating /private/etc/ssh/sshd_config on data volume..."
+echo "[x] Updating /etc/ssh/sshd_config on data volume..."
 echo >> "$sshd_config_file"
 echo "[x] Disabling the ability for the 'root' user to log in via SSH..."
 echo "PermitRootLogin no" >> "$sshd_config_file"
@@ -269,7 +266,7 @@ echo "AllowUsers $macos_username" >> "$sshd_config_file"
 # Save New APFS Snapshot
 # ----------------------
 echo "[x] Saving new APFS snapshot..."
-echo "bless --folder $readwrite_system_volume_mount_point/System/Library/CoreServices --bootefi --create-snapshot"
+bless --folder $readwrite_system_volume_mount_point/System/Library/CoreServices --bootefi --create-snapshot
 
 
 # Ending Text
