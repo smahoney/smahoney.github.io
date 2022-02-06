@@ -46,8 +46,8 @@ echo
 
 # Gather System Volume Information
 # --------------------------------
-system_volume_device=`mount | grep '(apfs, sealed, local, read-only, journaled, nobrowse)' | awk '{ print $1 }'`
-if [[ -z "$system_volume_device" ]]
+system_volume_device=$(mount | grep '(apfs, sealed, local, read-only, journaled, nobrowse)' | awk '{ print $1 }')
+if [ -z "$system_volume_device" ]
 then
   echo
   echo "[ERROR] Unable to determine system volume device."
@@ -57,8 +57,8 @@ else
   echo "[x] Determining system volume device...  $system_volume_device"
 fi
 
-system_volume_name=`diskutil info $system_volume_device | grep 'Mount Point' | awk -F '/Volumes/' '{ print $NF }' | sed 's/ /\\ /g'`
-if [[ -z "$system_volume_name" ]]
+system_volume_name=$(diskutil info "$system_volume_device" | grep 'Mount Point' | awk -F '/Volumes/' '{ print $NF }' | sed 's/ /\\ /g')
+if [ -z "$system_volume_name" ]
 then
   echo
   echo "[ERROR] Unable to determine system volume name."
@@ -67,7 +67,7 @@ then
 fi
 
 system_volume_mount_point="/Volumes/$system_volume_name"
-if [[ ! -d "$system_volume_mount_point" ]]
+if [ ! -d "$system_volume_mount_point" ]
 then
   echo
   echo "[ERROR] Unable to determine system volume mount point."
@@ -78,7 +78,7 @@ else
 fi
 
 readonly_ssh_plist_file="$system_volume_mount_point/System/Library/LaunchDaemons/ssh.plist"
-if [[ ! -f "$readonly_ssh_plist_file" ]]
+if [ ! -f "$readonly_ssh_plist_file" ]
 then
   echo
   echo "[ERROR] Unable to find /System/Library/LaunchDaemons/ssh.plist on system volume."
@@ -87,7 +87,7 @@ then
 fi
 
 readonly_screensharing_plist_file="$system_volume_mount_point/System/Library/LaunchDaemons/com.apple.screensharing.plist"
-if [[ ! -f "$readonly_screensharing_plist_file" ]]
+if [ ! -f "$readonly_screensharing_plist_file" ]
 then
   echo
   echo "[ERROR] Unable to find /System/Library/LaunchDaemons/com.apple.screensharing.plist on system volume."
@@ -98,8 +98,8 @@ fi
 
 # Gather Data Volume Information
 # ------------------------------
-data_volume_device=`mount | grep 'Data (apfs, local, journaled, nobrowse)' | awk '{ print $1 }'`
-if [[ -z "$data_volume_device" ]]
+data_volume_device=$(mount | grep 'Data (apfs, local, journaled, nobrowse)' | awk '{ print $1 }')
+if [ -z "$data_volume_device" ]
 then
   echo
   echo "[ERROR] Unable to determine data volume device."
@@ -109,8 +109,8 @@ else
   echo "[x] Determining data volume device...  $data_volume_device"
 fi
 
-data_volume_name=`diskutil info $data_volume_device | grep 'Mount Point' | awk -F '/Volumes/' '{ print $NF }' | sed 's/ /\\ /g'`
-if [[ -z "$data_volume_name" ]]
+data_volume_name=$(diskutil info "$data_volume_device" | grep 'Mount Point' | awk -F '/Volumes/' '{ print $NF }' | sed 's/ /\\ /g')
+if [ -z "$data_volume_name" ]
 then
   echo
   echo "[ERROR] Unable to determine data volume name."
@@ -119,7 +119,7 @@ then
 fi
 
 data_volume_mount_point="/Volumes/$data_volume_name"
-if [[ ! -d "$data_volume_mount_point" ]]
+if [ ! -d "$data_volume_mount_point" ]
 then
   echo
   echo "[ERROR] Unable to determine data volume mount point."
@@ -130,7 +130,7 @@ else
 fi
 
 sshd_config_file="$data_volume_mount_point/private/etc/ssh/sshd_config"
-if [[ ! -f "$sshd_config_file" ]]
+if [ ! -f "$sshd_config_file" ]
 then
   echo
   echo "[ERROR] Unable to find /private/etc/ssh/sshd_config on data volume."
@@ -139,7 +139,7 @@ then
 fi
 
 root_home_directory="$data_volume_mount_point/private/var/root"
-if [[ ! -d "$root_home_directory" ]]
+if [ ! -d "$root_home_directory" ]
 then
   echo
   echo "[ERROR] Unable to find /private/var/root (root's home directory) on data volume."
@@ -148,7 +148,7 @@ then
 fi
 
 users_directory="$data_volume_mount_point/Users"
-if [[ ! -d "$users_directory" ]]
+if [ ! -d "$users_directory" ]
 then
   echo
   echo "[ERROR] Unable to find /Users (parent directory of non-root user home directories) on data volume."
@@ -156,9 +156,23 @@ then
   exit 1
 fi
 
-# Determine the number of users on the system (this script cannot determine the macOS Monterey user who needs SSH access if there's more than one user).
-number_of_users=`ls "$users_directory" | grep -v '.localized' | grep -v 'Shared' | wc -l | sed 's/^ *//g'`
-if [[ "$number_of_users" -ne "1" ]]
+
+# Gather User Information
+# -----------------------
+macos_username=""
+number_of_users=0
+
+# POSIX-compliant approach to determining the number of macOS Monterey users on the system.
+for user in "$users_directory"/*
+do
+  case "$user" in
+    "$users_directory/Shared") true;;
+    *) macos_username="$(echo "$user" | awk -F '/' '{ print $NF }')"; number_of_users=$((number_of_users+1));;
+  esac
+done
+
+# Only proceed if the system has a single user (this script cannot determine the macOS Monterey user who needs SSH access if there's more than one user).
+if [ "$number_of_users" -ne "1" ]
 then
   echo
   echo "[ERROR] This script can only be used on macOS Monterey installations with one user."
@@ -168,9 +182,8 @@ else
   echo "[x] Determining number of macOS Monterey users...  $number_of_users"
 fi
 
-# Determine the username of the macOS Monterey user who needs SSH access.
-macos_username=`ls "$users_directory" | grep -v '.localized' | grep -v 'Shared'`
-if [[ -z "$macos_username" ]]
+# Only proceed if the username of the single macOS Monterey user can be determined.
+if [ -z "$macos_username" ]
 then
   echo
   echo "[ERROR] Unable to determine username of macOS Monterey user."
@@ -183,10 +196,10 @@ fi
 
 # File Backups
 # ------------
-date_time_suffix=`date +%Y%m%d%H%M%S`
+date_time_suffix=$(date +%Y%m%d%H%M%S)
 
 cp -a "$readonly_ssh_plist_file" "$root_home_directory/System_Library_LaunchDaemons_ssh.plist.$date_time_suffix"
-if [[ ! -f "$root_home_directory/System_Library_LaunchDaemons_ssh.plist.$date_time_suffix" ]]
+if [ ! -f "$root_home_directory/System_Library_LaunchDaemons_ssh.plist.$date_time_suffix" ]
 then
   echo
   echo "[ERROR] Backup of /System/Library/LaunchDaemons/ssh.plist to /var/root/System_Library_LaunchDaemons_ssh.plist.$date_time_suffix on data volume failed."
@@ -197,7 +210,7 @@ else
 fi
 
 cp -a "$readonly_screensharing_plist_file" "$root_home_directory/System_Library_LaunchDaemons_com.apple.screensharing.plist.$date_time_suffix"
-if [[ ! -f "$root_home_directory/System_Library_LaunchDaemons_com.apple.screensharing.plist.$date_time_suffix" ]]
+if [ ! -f "$root_home_directory/System_Library_LaunchDaemons_com.apple.screensharing.plist.$date_time_suffix" ]
 then
   echo
   echo "[ERROR] Backup of /System/Library/LaunchDaemons/com.apple.screensharing.plist to /var/root/System_Library_LaunchDaemons_com.apple.screensharing.plist.$date_time_suffix on data volume failed."
@@ -208,7 +221,7 @@ else
 fi
 
 cp -a "$sshd_config_file" "$root_home_directory/etc_ssh_sshd_config.$date_time_suffix"
-if [[ ! -f "$root_home_directory/etc_ssh_sshd_config.$date_time_suffix" ]]
+if [ ! -f "$root_home_directory/etc_ssh_sshd_config.$date_time_suffix" ]
 then
   echo
   echo "[ERROR] Backup of /etc/ssh/sshd_config to /var/root/etc_ssh_sshd_config.$date_time_suffix on data volume failed."
@@ -232,13 +245,13 @@ echo
 readwrite_system_volume_mount_point="/tmp/system_volume_mnt"
 
 echo "[x] Creating temporary mount point for mounting system volume read-write..."
-mkdir -p $readwrite_system_volume_mount_point
+mkdir -p "$readwrite_system_volume_mount_point"
 
 echo "[x] Unmounting read-only system volume..."
-umount $system_volume_device
+umount "$system_volume_device"
 
 echo "[x] Remounting system volume read-write..."
-mount -o nobrowse -t apfs $system_volume_device $readwrite_system_volume_mount_point
+mount -o nobrowse -t apfs "$system_volume_device" "$readwrite_system_volume_mount_point"
 
 
 # File Updates
@@ -247,10 +260,10 @@ readwrite_ssh_plist_file="$readwrite_system_volume_mount_point/System/Library/La
 readwrite_screensharing_plist_file="$readwrite_system_volume_mount_point/System/Library/LaunchDaemons/com.apple.screensharing.plist"
 
 echo "[x] Updating /System/Library/LaunchDaemons/ssh.plist on system volume..."
-perl -0777 -i -pe 's/<string>ssh<\/string>\s+<key>Bonjour<\/key>\s+<array>\s+<string>ssh<\/string>\s+<string>sftp-ssh<\/string>\s+<\/array>/<string>22022<\/string>/' $readwrite_ssh_plist_file
+perl -0777 -i -pe 's/<string>ssh<\/string>\s+<key>Bonjour<\/key>\s+<array>\s+<string>ssh<\/string>\s+<string>sftp-ssh<\/string>\s+<\/array>/<string>22022<\/string>/' "$readwrite_ssh_plist_file"
 
 echo "[x] Updating /System/Library/LaunchDaemons/com.apple.screensharing.plist on system volume..."
-perl -0777 -i -pe 's/<key>Bonjour<\/key>(\s+)<string>rfb<\/string>(\s+)<key>SockServiceName<\/key>(\s+)<string>vnc-server<\/string>/<key>SockNodeName<\/key>$1<string>localhost<\/string>$2<key>SockServiceName<\/key>$3<string>59059<\/string>/' $readwrite_screensharing_plist_file
+perl -0777 -i -pe 's/<key>Bonjour<\/key>(\s+)<string>rfb<\/string>(\s+)<key>SockServiceName<\/key>(\s+)<string>vnc-server<\/string>/<key>SockNodeName<\/key>$1<string>localhost<\/string>$2<key>SockServiceName<\/key>$3<string>59059<\/string>/' "$readwrite_screensharing_plist_file"
 
 echo "[x] Updating /etc/ssh/sshd_config on data volume..."
 echo >> "$sshd_config_file"
@@ -266,7 +279,7 @@ echo "AllowUsers $macos_username" >> "$sshd_config_file"
 # Save New APFS Snapshot
 # ----------------------
 echo "[x] Saving new APFS snapshot..."
-bless --folder $readwrite_system_volume_mount_point/System/Library/CoreServices --bootefi --create-snapshot
+bless --folder "$readwrite_system_volume_mount_point/System/Library/CoreServices" --bootefi --create-snapshot
 
 
 # Ending Text
