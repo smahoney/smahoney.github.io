@@ -166,6 +166,7 @@ number_of_users=0
 for user in "$users_directory"/*
 do
   case "$user" in
+    "$users_directory/Guest") true;;
     "$users_directory/Shared") true;;
     *) macos_username="$(echo "$user" | awk -F '/' '{ print $NF }')"; number_of_users=$((number_of_users+1));;
   esac
