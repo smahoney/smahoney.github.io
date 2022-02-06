@@ -70,7 +70,7 @@ system_volume_mount_point="/Volumes/$system_volume_name"
 if [ ! -d "$system_volume_mount_point" ]
 then
   echo
-  echo "[ERROR] Unable to determine system volume mount point."
+  echo "[ERROR] Unable to determine system volume mount point $system_volume_mount_point."
   echo
   exit 1
 else
