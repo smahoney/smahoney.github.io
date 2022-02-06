@@ -57,7 +57,7 @@ else
   echo "[x] Determining system volume device...  $system_volume_device"
 fi
 
-system_volume_name=$(diskutil info "$system_volume_device" | grep 'Mount Point' | awk -F '/Volumes/' '{ print $NF }' | sed 's/ /\\ /g')
+system_volume_name=$(diskutil info "$system_volume_device" | grep 'Mount Point' | awk -F '/Volumes/' '{ print $NF }')
 if [ -z "$system_volume_name" ]
 then
   echo
@@ -70,7 +70,7 @@ system_volume_mount_point="/Volumes/$system_volume_name"
 if [ ! -d "$system_volume_mount_point" ]
 then
   echo
-  echo "[ERROR] Unable to determine system volume mount point $system_volume_mount_point."
+  echo "[ERROR] Unable to determine system volume mount point."
   echo
   exit 1
 else
@@ -109,7 +109,7 @@ else
   echo "[x] Determining data volume device...  $data_volume_device"
 fi
 
-data_volume_name=$(diskutil info "$data_volume_device" | grep 'Mount Point' | awk -F '/Volumes/' '{ print $NF }' | sed 's/ /\\ /g')
+data_volume_name=$(diskutil info "$data_volume_device" | grep 'Mount Point' | awk -F '/Volumes/' '{ print $NF }')
 if [ -z "$data_volume_name" ]
 then
   echo
